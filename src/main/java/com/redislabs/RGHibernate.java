@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.nio.charset.StandardCharsets;
 import java.sql.Driver;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -95,8 +96,14 @@ public class RGHibernate implements Closeable, Serializable {
   }
 
   private void generateSession() {
+    //registry = new StandardServiceRegistryBuilder()
+     //   .configure(InMemoryURLFactory.getInstance().build("configuration", xmlConf)).build();
+
+    Object[] res = (Object[])  GearsBuilder.execute("RG.TRIGGER", "getPassword", "");
+    String dbpass = (String) res[0];
+    String xml = xmlConf.replaceAll("(connection\\.password\">)[^<]*", "$1" + dbpass);
     registry = new StandardServiceRegistryBuilder()
-        .configure(InMemoryURLFactory.getInstance().build("configuration", xmlConf)).build();
+            .configure(InMemoryURLFactory.getInstance().build("configuration", xmlConf.replaceAll("(connection\\.password\">)[^<]*", "$1" + dbpass))).build();
     MetadataSources sources = new MetadataSources(registry);
     Collection<String> srcs = this.sources.values();
     for (String src : srcs) {
